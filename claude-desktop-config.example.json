@@ -1,0 +1,24 @@
+{
+  "name": "wordpress-integration",
+  "displayName": "WordPress Integration",
+  "version": "1.0.0",
+  "description": "Integration with WordPress website",
+  "tools": [
+    {
+      "name": "wordpress_test",
+      "displayName": "WordPress Test",
+      "description": "Test connection with WordPress website",
+      "schema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "server": {
+        "url": "https://your-wordpress-site.com/wp-json/wpmcp/v1/test",
+        "headers": {
+          "x-api-key": "YOUR_API_KEY_HERE"
+        }
+      }
+    }
+  ]
+}
