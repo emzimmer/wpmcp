@@ -64,24 +64,66 @@ class WPMCP_Plugin {
     }
 
     public function register_rest_routes() {
-        register_rest_route('wpmcp/v1', '/test', array(
+        register_rest_route('claude-mcp/v1', '/data', array(
             'methods' => 'POST',
-            'callback' => array($this, 'handle_test_request'),
-            'permission_callback' => array($this, 'check_api_key')
+            'callback' => array($this, 'handle_mcp_request'),
+            'permission_callback' => '__return_true'  // We'll handle auth in the handler
         ));
     }
 
-    public function check_api_key($request) {
-        $headers = $request->get_headers();
-        $api_key = isset($headers['x-api-key']) ? $headers['x-api-key'][0] : '';
-        return $api_key === get_option('wpmcp_api_key');
+    public function handle_mcp_request($request) {
+        // Get the raw POST data
+        $json_str = file_get_contents('php://input');
+        $data = json_decode($json_str, true);
+
+        // Basic validation
+        if (!$data || !isset($data['type'])) {
+            return new WP_Error('invalid_request', 'Invalid request format', array('status' => 400));
+        }
+
+        // Handle different MCP request types
+        switch ($data['type']) {
+            case 'invoke':
+                return $this->handle_invoke($data);
+            case 'describe':
+                return $this->handle_describe();
+            default:
+                return new WP_Error('invalid_type', 'Invalid request type', array('status' => 400));
+        }
     }
 
-    public function handle_test_request($request) {
-        return new WP_REST_Response(array(
-            'message' => 'it worked!',
-            'status' => 'success'
-        ), 200);
+    private function handle_invoke($data) {
+        // For this proof of concept, we'll just return a success message
+        return array(
+            'type' => 'success',
+            'data' => array(
+                'message' => 'it worked!',
+                'timestamp' => current_time('c')
+            )
+        );
+    }
+
+    private function handle_describe() {
+        // Return the tool description
+        return array(
+            'type' => 'description',
+            'data' => array(
+                'name' => 'wordpress',
+                'version' => '1.0.0',
+                'description' => 'WordPress integration for Claude Desktop',
+                'functions' => array(
+                    array(
+                        'name' => 'test',
+                        'description' => 'Test the WordPress connection',
+                        'parameters' => array(
+                            'type' => 'object',
+                            'properties' => array(),
+                            'required' => array()
+                        )
+                    )
+                )
+            )
+        );
     }
 }
 
